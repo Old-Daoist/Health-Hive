@@ -2,7 +2,7 @@ import API from "../services/api";
 
 const ReportButton = ({ targetType, targetId }) => {
   const submit = async () => {
-    const reason = prompt("Why are you reporting this?");
+    const reason = prompt("What is the reason for reporting this?");
     if (!reason) return;
 
     await API.post("/reports", {
