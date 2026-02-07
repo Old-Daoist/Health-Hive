@@ -1,29 +1,51 @@
-import { useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import AppLayout from "./layouts/AppLayout";
+import ProtectedRoute from "./routes/ProtectedRoute";
+
+import DiscussionPages from "./pages/DiscussionPages";
+import PostPage from "./pages/PostPage";
 import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignUpPage";
-import UserDashboard from "./pages/UserDashBoard";
-import DoctorDashboard from "./pages/DoctorDashboard";
+import SignUpPage from "./pages/SignUpPage";
+import DoctorVerification from "./pages/DoctorVerification";
+import AdminVerification from "./pages/AdminVerification";
 
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [view, setView] = useState("login"); // login | signup
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
 
-  if (!user) {
-    if (view === "signup") {
-      return <SignupPage goToLogin={() => setView("login")} />;
-    }
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<DiscussionPages />} />
+          <Route path="/discussions" element={<DiscussionPages />} />
+          <Route path="/discussions/:id" element={<PostPage />} />
+        </Route>
 
-    return (
-      <LoginPage
-        onLogin={setUser}
-        goToSignup={() => setView("signup")}
-      />
-    );
-  }
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
 
-  if (user.type === "doctor") {
-    return <DoctorDashboard user={user} logout={() => setUser(null)} />;
-  }
+        <Route element={<ProtectedRoute roles={["user", "doctor", "admin"]} />}>
+          <Route element={<AppLayout />}>
+            <Route path="/new-discussion" element={<PostPage />} />
+          </Route>
+        </Route>
 
-  return <UserDashboard user={user} logout={() => setUser(null)} />;
+        <Route element={<ProtectedRoute roles={["doctor"]} requireVerifiedDoctor />}>
+          <Route element={<AppLayout />}>
+            <Route path="/diagnosis" element={<PostPage />} />
+            <Route path="/verify-doctor" element={<DoctorVerification />} />
+          </Route>
+        </Route>
+
+        <Route element={<ProtectedRoute roles={["admin"]} />}>
+          <Route element={<AppLayout />}>
+            <Route path="/admin" element={<AdminVerification />} />
+          </Route>
+        </Route>
+
+      </Routes>
+    </BrowserRouter>
+  );
 }
+
+export default App;

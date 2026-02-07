@@ -1,30 +1,51 @@
 const express = require("express");
 const Discussion = require("../models/Discussion");
+const Reply = require("../models/Reply");
+const { requireAuth } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
-router.get("/", async (_, res) => {
-  const posts = await Discussion.find().sort({ createdAt: -1 });
-  res.json(posts);
+/* CREATE DISCUSSION */
+router.post("/", requireAuth, async (req, res) => {
+  try {
+    const discussion = await Discussion.create({
+      ...req.body,
+      author: req.user.id
+    });
+
+    res.status(201).json(discussion);
+  } catch {
+    res.status(500).json({ message: "Failed to create discussion" });
+  }
 });
 
-router.post("/", async (req, res) => {
-  const post = await Discussion.create(req.body);
-  res.json(post);
+/* GET ALL DISCUSSIONS */
+router.get("/", async (req, res) => {
+  try {
+    const discussions = await Discussion.find()
+      .populate("author", "name role isDoctorVerified")
+      .sort({ createdAt: -1 });
+
+    res.json(discussions);
+  } catch {
+    res.status(500).json({ message: "Failed to fetch discussions" });
+  }
 });
 
-router.post("/:id/comment", async (req, res) => {
-  const post = await Discussion.findById(req.params.id);
-  post.comments.unshift(req.body);
-  await post.save();
-  res.json(post);
-});
+/* GET SINGLE DISCUSSION + REPLIES */
+router.get("/:id", async (req, res) => {
+  try {
+    const discussion = await Discussion.findById(req.params.id)
+      .populate("author", "name role isDoctorVerified");
 
-router.post("/:id/like", async (req, res) => {
-  const post = await Discussion.findById(req.params.id);
-  post.likes += 1;
-  await post.save();
-  res.json(post);
+    const replies = await Reply.find({ discussion: req.params.id })
+      .populate("doctor", "name role isDoctorVerified")
+      .sort({ createdAt: 1 });
+
+    res.json({ discussion, replies });
+  } catch {
+    res.status(404).json({ message: "Discussion not found" });
+  }
 });
 
 module.exports = router;

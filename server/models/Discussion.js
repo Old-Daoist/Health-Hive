@@ -1,20 +1,55 @@
 const mongoose = require("mongoose");
 
-const CommentSchema = new mongoose.Schema({
-  authorName: String,
-  authorType: String,
-  text: String,
-  createdAt: { type: Date, default: Date.now }
-});
+const discussionSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true
+    },
 
-const DiscussionSchema = new mongoose.Schema({
-  title: String,
-  body: String,
-  category: String,
-  authorName: String,
-  authorType: String,
-  likes: { type: Number, default: 0 },
-  comments: [CommentSchema]
-}, { timestamps: true });
+    symptoms: {
+      type: String,
+      required: true
+    },
 
-module.exports = mongoose.model("Discussion", DiscussionSchema);
+    duration: {
+      type: String,
+      required: true
+    },
+
+    age: Number,
+
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"]
+    },
+
+    region: {
+      type: String
+    },
+
+    category: {
+      type: String,
+      enum: [
+        "general",
+        "cardiology",
+        "endocrinology",
+        "psychiatry",
+        "pediatrics",
+        "orthopedics",
+        "other"
+      ],
+      required: true
+    },
+
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    }
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Discussion", discussionSchema);

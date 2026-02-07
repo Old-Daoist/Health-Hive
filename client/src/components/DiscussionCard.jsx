@@ -1,76 +1,31 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
 
-export default function DiscussionCard({ discussion, user, refresh }) {
-  const [comment, setComment] = useState("");
-
-  const like = async () => {
-    await fetch(
-      `http://localhost:5000/api/discussions/${discussion._id}/like`,
-      { method: "POST" }
-    );
-    refresh();
-  };
-
-  const addComment = async (e) => {
-    e.preventDefault();
-    if (!comment.trim()) return;
-
-    await fetch(
-      `http://localhost:5000/api/discussions/${discussion._id}/comment`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          authorName: user.name,
-          authorType: user.type,
-          body: comment
-        })
-      }
-    );
-
-    setComment("");
-    refresh();
-  };
-
+export default function DiscussionCard() {
   return (
-    <div className="bg-white p-4 rounded shadow space-y-3">
-      <h3 className="font-semibold text-lg">{discussion.title}</h3>
-      <p>{discussion.body}</p>
-
-      <div className="text-sm text-gray-500">
-        {discussion.authorName} • {discussion.tag}
-        {discussion.authorType === "doctor" && (
-          <span className="ml-2 text-green-600 font-semibold">Doctor</span>
-        )}
+    <div className="bg-white p-4 rounded-xl shadow">
+      <div className="flex justify-between">
+        <h3 className="font-semibold text-lg">
+          Understanding High Blood Pressure
+        </h3>
+        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
+          Cardiology
+        </span>
       </div>
 
-      <button
-        onClick={like}
-        className="text-sm text-blue-600 font-semibold"
+      <p className="text-slate-600 mt-2">
+        Can someone explain what causes high blood pressure?
+      </p>
+
+      <div className="text-sm text-slate-500 mt-3">
+        John Smith • 2024-01-15
+      </div>
+
+      <Link
+        to="/post/1"
+        className="text-emerald-600 text-sm mt-2 inline-block"
       >
-        👍 {discussion.likes}
-      </button>
-
-      {/* Comments */}
-      <div className="space-y-2">
-        {discussion.comments.map((c, i) => (
-          <div key={i} className="bg-gray-100 p-2 rounded text-sm">
-            <strong>{c.authorName}</strong>: {c.body}
-          </div>
-        ))}
-      </div>
-
-      <form onSubmit={addComment} className="flex gap-2">
-        <input
-          className="flex-1 p-2 border rounded"
-          placeholder="Add a comment..."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        />
-        <button className="bg-gray-900 text-white px-3 rounded">
-          Send
-        </button>
-      </form>
+        View discussion →
+      </Link>
     </div>
   );
 }
