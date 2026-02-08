@@ -38,4 +38,4 @@ const DoctorVerification = () => {
   );
 };
 
-export default DoctorVerification;
+export default DoctorVerification; 
