@@ -1,78 +1,105 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import API from "../services/api";
+import { useAuth } from "../Context/AuthContext";
 
-export default function SignupPage({ goToLogin }) {
+export default function SignUpPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
     password: "",
-    userType: "regular"
+    role: "user",
   });
 
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const submit = async () => {
-    const res = await fetch("http://localhost:5000/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
+    try {
+      setLoading(true);
+      setError("");
 
-    const data = await res.json();
+      const res = await API.post("/auth/signup", form);
 
-    if (res.ok) {
-      alert("Account created. Please sign in.");
-      goToLogin();
-    } else {
-      alert(data.message);
+      // Auto-login after signup
+      login(res.data);
+
+      navigate("/discussions");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Signup failed"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-6 rounded w-96 shadow">
-        <h1 className="text-xl font-bold mb-4">Create Account</h1>
+        <h1 className="text-xl font-bold mb-4">
+          Create Account
+        </h1>
+
+        {error && (
+          <div className="bg-red-100 text-red-600 p-2 mb-3 rounded text-sm">
+            {error}
+          </div>
+        )}
 
         <input
           className="border p-2 w-full mb-2"
-          placeholder="First name"
-          onChange={e => setForm({ ...form, firstName: e.target.value })}
-        />
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Last name"
-          onChange={e => setForm({ ...form, lastName: e.target.value })}
+          placeholder="Full name"
+          value={form.name}
+          onChange={(e) =>
+            setForm({ ...form, name: e.target.value })
+          }
         />
 
         <input
           className="border p-2 w-full mb-2"
           placeholder="Email"
-          onChange={e => setForm({ ...form, email: e.target.value })}
+          type="email"
+          value={form.email}
+          onChange={(e) =>
+            setForm({ ...form, email: e.target.value })
+          }
         />
 
         <input
           className="border p-2 w-full mb-2"
           type="password"
           placeholder="Password"
-          onChange={e => setForm({ ...form, password: e.target.value })}
+          value={form.password}
+          onChange={(e) =>
+            setForm({ ...form, password: e.target.value })
+          }
         />
 
         <select
           className="border p-2 w-full mb-4"
-          onChange={e => setForm({ ...form, userType: e.target.value })}
+          value={form.role}
+          onChange={(e) =>
+            setForm({ ...form, role: e.target.value })
+          }
         >
-          <option value="regular">Regular User</option>
+          <option value="user">Regular User</option>
           <option value="doctor">Doctor</option>
         </select>
 
         <button
           onClick={submit}
-          className="bg-black text-white w-full p-2"
+          disabled={loading}
+          className="bg-emerald-600 text-white w-full p-2 rounded hover:bg-emerald-700 disabled:opacity-50"
         >
-          Sign up
+          {loading ? "Creating..." : "Sign up"}
         </button>
 
         <p
-          onClick={goToLogin}
+          onClick={() => navigate("/login")}
           className="text-sm text-blue-600 mt-3 text-center cursor-pointer"
         >
           Already have an account? Sign in

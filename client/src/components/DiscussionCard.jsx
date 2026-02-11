@@ -1,31 +1,28 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-export default function DiscussionCard() {
+export default function DiscussionCard({ discussion }) {
+  const navigate = useNavigate();
+
+  const authorName =
+    discussion.author?.name || "Unknown User";
+
   return (
-    <div className="bg-white p-4 rounded-xl shadow">
-      <div className="flex justify-between">
-        <h3 className="font-semibold text-lg">
-          Understanding High Blood Pressure
-        </h3>
-        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-          Cardiology
-        </span>
-      </div>
+    <div
+      onClick={() => navigate(`/discussions/${discussion._id}`)}
+      className="bg-white rounded-xl border p-6 shadow-sm cursor-pointer hover:shadow-md transition"
+    >
+      <h3 className="text-lg font-semibold mb-1">
+        {discussion.title}
+      </h3>
 
-      <p className="text-slate-600 mt-2">
-        Can someone explain what causes high blood pressure?
+      <p className="text-sm text-slate-500 mb-3">
+        {authorName}
       </p>
 
-      <div className="text-sm text-slate-500 mt-3">
-        John Smith • 2024-01-15
+      <div className="text-sm text-slate-500 flex gap-4">
+        <span>👁 {discussion.views || 0} views</span>
+        <span>👍 {discussion.likes || 0} likes</span>
       </div>
-
-      <Link
-        to="/post/1"
-        className="text-emerald-600 text-sm mt-2 inline-block"
-      >
-        View discussion →
-      </Link>
     </div>
   );
 }

@@ -1,8 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../Context/AuthContext";
 
 const ProtectedRoute = ({ roles, requireVerifiedDoctor = false }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Wait until auth state is loaded
+  if (loading) {
+    return null;
+  }
 
   // Not logged in
   if (!user) {
@@ -15,7 +20,7 @@ const ProtectedRoute = ({ roles, requireVerifiedDoctor = false }) => {
   }
 
   // Verified doctor check
-  if (requireVerifiedDoctor && !user.isDoctorVerified) {
+  if (requireVerifiedDoctor && !user.verified) {
     return <Navigate to="/" replace />;
   }
 

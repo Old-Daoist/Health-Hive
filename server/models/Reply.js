@@ -5,25 +5,48 @@ const replySchema = new mongoose.Schema(
     discussion: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Discussion",
-      required: true
+      required: true,
     },
 
     doctor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
 
     content: {
       type: String,
-      required: true
+      required: true,
+      trim: true,
+    },
+
+    // Snapshot fields for fast UI rendering
+    doctorRole: {
+      type: String,
+      enum: ["doctor"],
+      default: "doctor",
+    },
+
+    doctorVerified: {
+      type: Boolean,
+      default: false,
     },
 
     status: {
       type: String,
       enum: ["pending", "verified", "rejected"],
-      default: "pending"
-    }
+      default: "pending",
+    },
+
+    isReported: {
+      type: Boolean,
+      default: false,
+    },
+
+    likes: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
