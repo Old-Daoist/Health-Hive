@@ -8,7 +8,7 @@ const generateToken = (user) => {
       isDoctorVerified: user.isDoctorVerified,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "30d" }
   );
 };
 
