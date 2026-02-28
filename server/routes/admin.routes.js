@@ -2,7 +2,6 @@ const express = require("express");
 const DoctorVerification = require("../models/DoctorVerification");
 const User = require("../models/User");
 const { requireAuth } = require("../middleware/auth.middleware");
-
 const router = express.Router();
 
 /* ADMIN ONLY CHECK */
