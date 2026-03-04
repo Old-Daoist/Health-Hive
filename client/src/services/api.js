@@ -1,27 +1,54 @@
-import axios from "axios";
+import axios from 'axios';
 
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: false,
+const api = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
 });
 
-/* ===========================
-   ATTACH TOKEN IF PRESENT
-=========================== */
-API.interceptors.request.use(
-  (req) => {
-    const auth = localStorage.getItem("auth");
+// Attach JWT to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('hh_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-    if (auth) {
-      const { token } = JSON.parse(auth);
-      if (token) {
-        req.headers.Authorization = `Bearer ${token}`;
-      }
+// Auto-logout on 401
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('hh_token');
+      localStorage.removeItem('hh_user');
+      window.location.href = '/login';
     }
-
-    return req;
-  },
-  (error) => Promise.reject(error)
+    return Promise.reject(err);
+  }
 );
 
-export default API;
+// ── Auth ────────────────────────────────────────────
+export const authAPI = {
+  signup:         (data) => api.post('/auth/signup', data),
+  login:          (data) => api.post('/auth/login', data),
+  getMe:          ()     => api.get('/auth/me'),
+  updateProfile:  (data) => api.put('/auth/profile', data),
+  changePassword: (data) => api.put('/auth/password', data),
+};
+
+// ── Discussions ─────────────────────────────────────
+export const discussionsAPI = {
+  getAll:      (params) => api.get('/discussions', { params }),
+  getById:     (id)     => api.get(`/discussions/${id}`),
+  create:      (data)   => api.post('/discussions', data),
+  delete:      (id)     => api.delete(`/discussions/${id}`),
+  like:        (id)     => api.post(`/discussions/${id}/like`),
+  bookmark:    (id)     => api.post(`/discussions/${id}/bookmark`),
+  getBookmarks:()       => api.get('/discussions/bookmarks/me'),
+};
+
+// ── Replies ─────────────────────────────────────────
+export const repliesAPI = {
+  create: (discussionId, content) => api.post(`/replies/${discussionId}`, { content }),
+  delete: (replyId)               => api.delete(`/replies/${replyId}`),
+};
+
+export default api;

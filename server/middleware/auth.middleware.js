@@ -3,17 +3,16 @@ const User = require("../models/User");
 
 const requireAuth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const header = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!header || !header.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = header.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Fetch full user from database
     const user = await User.findById(decoded.id);
 
     if (!user) {
@@ -22,14 +21,14 @@ const requireAuth = async (req, res, next) => {
 
     req.user = {
       id: user._id,
+      name: `${user.firstName} ${user.lastName}`,
       role: user.role,
       isDoctorVerified: user.isDoctorVerified,
-      name: user.name,
     };
 
     next();
-  } catch (error) {
-    console.error("Auth error:", error.message);
+  } catch (err) {
+    console.error(err.message);
     res.status(401).json({ message: "Invalid token" });
   }
 };
