@@ -13,28 +13,27 @@ router.post("/", requireAuth, async (req, res) => {
     const {
       title,
       symptoms,
-      duration,
       age,
       gender,
       region,
       category,
     } = req.body;
 
-    if (!title || !symptoms || !duration || !category) {
+    // Fixed validation (removed duration)
+    if (!title || !symptoms || !category) {
       return res.status(400).json({
-        message: "Title, symptoms, duration and category are required",
+        message: "Title, symptoms and category are required",
       });
     }
 
     const discussion = await Discussion.create({
       title,
       symptoms,
-      duration,
       age,
       gender,
       region,
       category,
-      author: req.user.id, // 🔥 THIS is important
+      author: req.user.id,
     });
 
     const populatedDiscussion = await Discussion.findById(discussion._id)
