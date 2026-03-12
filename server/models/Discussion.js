@@ -7,22 +7,19 @@ const discussionSchema = new mongoose.Schema(
     required: true
   },
 
+  content: {
+    type: String,
+    required: true
+  },
+
   symptoms: {
     type: [String],
     required: true
   },
 
-  age: {
-    type: Number
-  },
-
-  gender: {
-    type: String
-  },
-
-  region: {
-    type: String
-  },
+  age: Number,
+  gender: String,
+  region: String,
 
   category: {
     type: String,
@@ -43,7 +40,14 @@ const discussionSchema = new mongoose.Schema(
   likes: {
     type: Number,
     default: 0
-  }
+  },
+
+  likedBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  ]
 
 },
 { timestamps: true }
