@@ -5,7 +5,7 @@ const replySchema = new mongoose.Schema(
   discussion: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Discussion",
-    required: true
+    required: false
   },
 
   author: {
