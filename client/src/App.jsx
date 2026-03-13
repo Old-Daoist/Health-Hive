@@ -5,6 +5,9 @@ import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import ForumDashboard from './components/ForumDashboard';
+import VerifyEmailPage from './components/VerifyEmailPage';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
+import ResetPasswordPage from './components/ResetPasswordPage';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -29,11 +32,14 @@ export default function App() {
   return (
     <>
       <Routes>
-        <Route path="/"       element={<PublicRoute><LandingPage /></PublicRoute>} />
-        <Route path="/login"  element={<PublicRoute><LoginPage /></PublicRoute>} />
-        <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
-        <Route path="/forum/*" element={<PrivateRoute><ForumDashboard /></PrivateRoute>} />
-        <Route path="*"       element={<Navigate to="/" replace />} />
+        <Route path="/"                element={<PublicRoute><LandingPage /></PublicRoute>} />
+        <Route path="/login"           element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path="/signup"          element={<PublicRoute><SignupPage /></PublicRoute>} />
+        <Route path="/verify-email"    element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+        <Route path="/reset-password"  element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
+        <Route path="/forum/*"         element={<PrivateRoute><ForumDashboard /></PrivateRoute>} />
+        <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster richColors position="top-right" />
     </>

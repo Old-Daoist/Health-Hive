@@ -2,6 +2,7 @@ const express = require("express");
 const Discussion = require("../models/Discussion");
 const Reply = require("../models/Reply");
 const { requireAuth } = require("../middleware/auth.middleware");
+const { createNotification } = require("./notification.routes");
 
 const router = express.Router();
 
@@ -260,6 +261,18 @@ if (alreadyLiked) {
 }
 
 await discussion.save();
+
+// Notify discussion author when someone likes (not if liking own post, not on unlike)
+if (!alreadyLiked && discussion.author.toString() !== req.user.id.toString()) {
+  createNotification({
+    recipient: discussion.author,
+    sender: req.user.id,
+    type: "like",
+    message: `${req.user.name} liked your discussion "${discussion.title.slice(0, 60)}"`,
+    discussionId: discussion._id,
+    link: discussion._id.toString(),
+  }).catch(console.error);
+}
 
 res.json({
   success: true,

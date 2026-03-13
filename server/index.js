@@ -7,123 +7,70 @@ const { Server } = require("socket.io");
 
 require("dotenv").config();
 
-/* ===========================
-   APP INITIALIZATION
-=========================== */
+/* ── Optional security packages (install before deploying) ── */
+let helmet, mongoSanitize, xssClean, rateLimit;
+try { helmet       = require("helmet");                  } catch {}
+try { mongoSanitize= require("express-mongo-sanitize"); } catch {}
+try { xssClean     = require("xss-clean");              } catch {}
+try { rateLimit    = require("express-rate-limit");     } catch {}
 
-const app = express();
-
-/* ===========================
-   HTTP SERVER (needed for Socket.IO)
-=========================== */
-
+const app    = express();
 const server = http.createServer(app);
 
-/* ===========================
-   SOCKET.IO INITIALIZATION
-=========================== */
+/* ── Allowed origins (add your prod domain here before deploying) ── */
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
+  .split(",").map(o => o.trim());
 
+/* ── Socket.IO ── */
 const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:5173"],
-    methods: ["GET", "POST"],
-    credentials: true
-  }
+  cors: { origin: ALLOWED_ORIGINS, methods: ["GET","POST"], credentials: true },
 });
-
-// Make socket accessible everywhere
 global.io = io;
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
-  // Join a personal room keyed by userId for DMs
-  socket.on("joinUserRoom", (userId) => {
-    socket.join(userId);
-    console.log(`Socket ${socket.id} joined room: ${userId}`);
-  });
-
-  // Join a discussion room for real-time comments
-  socket.on("joinDiscussion", (discussionId) => {
-    socket.join(`discussion:${discussionId}`);
-  });
-
-  socket.on("leaveDiscussion", (discussionId) => {
-    socket.leave(`discussion:${discussionId}`);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+  socket.on("joinUserRoom",   (userId)        => socket.join(userId));
+  socket.on("joinDiscussion", (discussionId)  => socket.join(`discussion:${discussionId}`));
+  socket.on("leaveDiscussion",(discussionId)  => socket.leave(`discussion:${discussionId}`));
+  socket.on("disconnect", () => {});
 });
 
-/* ===========================
-   MIDDLEWARE
-=========================== */
+/* ── Security headers (helmet) ── */
+if (helmet) app.use(helmet({ crossOriginEmbedderPolicy: false }));
 
-// Enable CORS for frontend (Vite default: 5173)
-app.use(
-  cors({
-    origin: ["http://localhost:5173"],
-    credentials: true,
-  })
-);
+/* ── CORS ── */
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 
-app.use(express.json());
+/* ── Body parsing ── */
+app.use(express.json({ limit: "10kb" }));
 
-// Serve uploaded files statically
+/* ── Sanitize ── */
+if (mongoSanitize) app.use(mongoSanitize());
+if (xssClean)      app.use(xssClean());
+
+/* ── Static uploads ── */
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-/* ===========================
-   ROUTES
-=========================== */
+/* ── Routes ── */
+const authRoutes         = require("./routes/auth.routes");
+const discussionRoutes   = require("./routes/discussion.routes");
+const replyRoutes        = require("./routes/reply.routes");
+const messageRoutes      = require("./routes/message.routes");
+const notificationRoutes = require("./routes/notification.routes");
 
-const authRoutes = require("./routes/auth.routes");
-const discussionRoutes = require("./routes/discussion.routes");
-const replyRoutes = require("./routes/reply.routes");
-const messageRoutes = require("./routes/message.routes");
-//const doctorRoutes = require("./routes/doctor.routes");
-//const adminRoutes = require("./routes/admin.routes");
-//const reportRoutes = require("./routes/report.routes");
-//const moderationRoutes = require("./routes/moderation.routes");
+app.use("/api/auth",          authRoutes);
+app.use("/api/discussions",   discussionRoutes);
+app.use("/api/replies",       replyRoutes);
+app.use("/api/messages",      messageRoutes);
+app.use("/api/notifications", notificationRoutes);
 
-app.use("/api/auth", authRoutes);
-app.use("/api/discussions", discussionRoutes);
-app.use("/api/replies", replyRoutes);
-app.use("/api/messages", messageRoutes);
-// app.use("/api/doctor", doctorRoutes);
-// app.use("/api/admin", adminRoutes);
-// app.use("/api/reports", reportRoutes);
-// app.use("/api/moderation", moderationRoutes);
+/* ── Health check ── */
+app.get("/", (req, res) => res.json({ message: "Health Hive API running" }));
 
-/* ===========================
-   DATABASE CONNECTION
-=========================== */
+/* ── DB ── */
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => { console.error("MongoDB error:", err.message); process.exit(1); });
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected successfully");
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err.message);
-    process.exit(1);
-  });
-
-/* ===========================
-   HEALTH CHECK ROUTE
-=========================== */
-
-app.get("/", (req, res) => {
-  res.json({ message: "Health Hive API running" });
-});
-
-/* ===========================
-   SERVER START
-=========================== */
-
+/* ── Start ── */
 const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server on port ${PORT}`));

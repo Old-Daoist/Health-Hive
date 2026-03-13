@@ -2,58 +2,38 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
 {
-  firstName: {
-    type: String,
-    required: true,
-    trim: true,
-  },
+  firstName: { type: String, required: true, trim: true },
+  lastName:  { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  password: { type: String, required: true, select: false },
 
-  lastName: {
-    type: String,
-    required: true,
-    trim: true,
-  },
+  role: { type: String, enum: ["regular", "doctor", "admin"], default: "regular" },
+  isDoctorVerified: { type: Boolean, default: false },
 
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-  },
+  /* Email verification */
+  isEmailVerified:         { type: Boolean, default: false },
+  emailVerificationToken:  { type: String, select: false },
+  emailVerificationExpiry: { type: Date,   select: false },
 
-  password: {
-    type: String,
-    required: true,
-    select: false
-  },
+  /* Password reset */
+  passwordResetToken:  { type: String, select: false },
+  passwordResetExpiry: { type: Date,   select: false },
 
-  role: {
-    type: String,
-    enum: ["regular", "doctor", "admin"],
-    default: "regular",
-  },
+  /* Profile extras */
+  bio:            { type: String, default: "" },
+  phone:          { type: String, default: "" },
+  city:           { type: String, default: "" },
+  country:        { type: String, default: "" },
+  specialization: { type: String, default: "" },
 
-  isDoctorVerified: {
-    type: Boolean,
-    default: false,
-  },
-
-  bookmarks: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Discussion",
-    },
-  ],
-
+  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Discussion" }],
 },
 {
   timestamps: true,
   toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  toObject: { virtuals: true },
 }
 );
-
-/* Virtual full name */
 
 userSchema.virtual("name").get(function () {
   return `${this.firstName} ${this.lastName}`;

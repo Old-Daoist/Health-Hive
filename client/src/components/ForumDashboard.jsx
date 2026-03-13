@@ -21,9 +21,10 @@ import { Footer } from './Footer';
 import DirectMessaging from './DirectMessaging';
 import {
   LogOut, MessageSquare, User as UserIcon, Settings,
-  Bookmark, HelpCircle, Info, Bell, Menu, Hash, Activity,
+  Bookmark, HelpCircle, Info, Menu, Hash, Activity,
   MessageCircle, Search, TrendingUp, Sparkles, X, Mail, Stethoscope
 } from 'lucide-react';
+import NotificationDropdown from './NotificationDropdown';
 
 const categories = [
   'General Health', 'Mental Health', 'Cardiology', 'Neurology',
@@ -119,15 +120,15 @@ export default function ForumDashboard() {
 
       {/* ── Top Navbar ── */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-30 h-16 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 h-full flex items-center justify-between gap-4">
+        <div className="max-w-screen-2xl mx-auto px-4 h-full flex items-center justify-between gap-4">
 
           {/* Logo + Desktop Nav */}
           <div className="flex items-center gap-6">
             <button onClick={() => setCurrentPage('discussions')} className="flex items-center gap-3 group shrink-0">
-              <div className="w-9 h-9 bg-linear-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-all duration-200">
+              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-all duration-200">
                 <Activity className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent hidden sm:block">
+              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent hidden sm:block">
                 Health Hive
               </span>
             </button>
@@ -160,7 +161,15 @@ export default function ForumDashboard() {
               <Mail className="w-5 h-5" />
             </button>
             <button className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
-              <Bell className="w-5 h-5" />
+              <NotificationDropdown
+                onNavigateToDiscussion={async (discussionId) => {
+                  try {
+                    const { data } = await (await import('../services/api')).discussionsAPI.getById(discussionId);
+                    setSelectedDiscussion(data.discussion);
+                    setCurrentPage('discussion-detail');
+                  } catch {}
+                }}
+              />
             </button>
             <div className="w-px h-6 bg-slate-200 mx-0.5" />
 
@@ -168,7 +177,7 @@ export default function ForumDashboard() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border border-transparent hover:border-slate-200 hover:bg-slate-50 hover:shadow-md transition-all duration-200">
                   <Avatar className="w-8 h-8 ring-2 ring-offset-1 ring-offset-white ring-blue-100">
-                    <AvatarFallback className={`text-white text-xs font-bold ${isDoctor ? 'bg-linear-to-br from-emerald-500 to-green-600' : 'bg-linear-to-br from-blue-500 to-indigo-600'}`}>
+                    <AvatarFallback className={`text-white text-xs font-bold ${isDoctor ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
                       {displayInitials}
                     </AvatarFallback>
                   </Avatar>
@@ -243,12 +252,12 @@ export default function ForumDashboard() {
       </header>
 
       {/* ── Body ── */}
-      <div className="flex-1 max-w-[1600px] w-full mx-auto px-4 md:px-6 lg:px-8 py-6">
+      <div className="flex-1 max-w-screen-2xl w-full mx-auto px-4 md:px-6 lg:px-8 py-6">
         <div className={isForumPage ? 'md:grid md:grid-cols-[210px_1fr] gap-8' : ''}>
 
           {/* Category sidebar — forum pages only */}
           {isForumPage && (
-            <aside className="hidden md:flex flex-col gap-6 self-start sticky top-[80px]">
+            <aside className="hidden md:flex flex-col gap-6 self-start sticky top-20">
               <div className="space-y-0.5">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Topics</p>
                 {[{ value: 'all', label: 'All Topics' }, ...categories.map(c => ({ value: c, label: c }))].map(cat => (
@@ -289,7 +298,7 @@ export default function ForumDashboard() {
         <DialogContent className="max-w-2xl max-h-[80vh] p-0 gap-0 rounded-2xl overflow-hidden">
           <DialogHeader className="p-6 pb-4 border-b border-slate-100">
             <DialogTitle className="flex items-center gap-3 text-xl">
-              <div className="p-2 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               Search Health Hive
@@ -344,7 +353,7 @@ export default function ForumDashboard() {
                     onClick={() => { setSelectedDiscussion(d); setCurrentPage('discussion-detail'); setIsSearchOpen(false); setGlobalSearchQuery(''); }}
                     className="w-full text-left p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-slate-50 hover:shadow-md transition-all group">
                     <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${d.author?.role === 'doctor' ? 'bg-linear-to-br from-emerald-500 to-green-600' : 'bg-linear-to-br from-blue-500 to-indigo-600'}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${d.author?.role === 'doctor' ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
                         {d.author?.role === 'doctor' ? <Stethoscope className="w-5 h-5 text-white" /> : <UserIcon className="w-5 h-5 text-white" />}
                       </div>
                       <div className="flex-1 min-w-0">
