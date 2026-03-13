@@ -1,0 +1,7 @@
+git add .
+git commit -m " "
+git push origin Health-Hive-ver-3
+--------------------------------------------
+git push -f origin Health-Hive-ver-3
+--------------------------------------------
+.\mongod.exe --dbpath C:\data\db
