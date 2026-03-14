@@ -138,7 +138,7 @@ export default function SettingsPage() {
               <p className="text-xs text-slate-400">{profileForm.bio.length}/200 characters</p>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleSaveProfile} disabled={saving} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20 gap-2">
+              <Button onClick={handleSaveProfile} disabled={saving} className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md shadow-blue-500/20 gap-2">
                 {saving ? <><RefreshCw className="w-4 h-4 animate-spin" /> Saving…</> : <><Save className="w-4 h-4" /> Save changes</>}
               </Button>
             </div>
@@ -209,7 +209,7 @@ export default function SettingsPage() {
                 )}
               </div>
               <Button onClick={handleChangePassword} disabled={changingPwd}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 gap-2">
+                className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 gap-2">
                 {changingPwd ? <><RefreshCw className="w-4 h-4 animate-spin" /> Changing…</> : 'Change password'}
               </Button>
             </div>

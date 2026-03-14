@@ -29,14 +29,14 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-purple-50/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50/80 via-indigo-50/40 to-purple-50/30 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/30">
+          <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/30">
             <Activity className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Health Hive</h1>
+            <h1 className="text-2xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Health Hive</h1>
             <p className="text-xs text-slate-500 -mt-0.5">Community Health Platform</p>
           </div>
         </div>
@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
               <h2 className="text-xl font-bold text-slate-800">Email verified!</h2>
               <p className="text-slate-500 text-sm">Your account is now fully activated. You can start using Health Hive.</p>
               <Link to="/forum">
-                <Button className="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 h-11">
+                <Button className="w-full mt-2 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 h-11">
                   Go to Forum
                 </Button>
               </Link>

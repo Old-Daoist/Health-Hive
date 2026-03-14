@@ -329,7 +329,7 @@ export default function LandingPage() {
       <footer className="py-10 px-6 border-t border-slate-200/60">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
+            <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
               <Activity className="w-4 h-4 text-white" />
             </div>
             <span className="hh-display font-bold text-slate-800 text-sm">Health Hive</span>

@@ -14,7 +14,7 @@ function PrivateRoute({ children }) {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl animate-pulse" />
+        <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-indigo-600 rounded-xl animate-pulse" />
         <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600/30 border-t-blue-600" />
       </div>
     </div>

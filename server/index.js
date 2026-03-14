@@ -8,10 +8,8 @@ const { Server } = require("socket.io");
 require("dotenv").config();
 
 /* ── Optional security packages (install before deploying) ── */
-let helmet, mongoSanitize, xssClean, rateLimit;
+let helmet, rateLimit;
 try { helmet       = require("helmet");                  } catch {}
-try { mongoSanitize= require("express-mongo-sanitize"); } catch {}
-try { xssClean     = require("xss-clean");              } catch {}
 try { rateLimit    = require("express-rate-limit");     } catch {}
 
 const app    = express();
@@ -42,10 +40,6 @@ app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 
 /* ── Body parsing ── */
 app.use(express.json({ limit: "10kb" }));
-
-/* ── Sanitize ── */
-if (mongoSanitize) app.use(mongoSanitize());
-if (xssClean)      app.use(xssClean());
 
 /* ── Static uploads ── */
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

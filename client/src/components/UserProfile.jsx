@@ -40,13 +40,13 @@ export default function UserProfile() {
       {/* ── Profile hero card ── */}
       <Card className="border-slate-100 shadow-md overflow-hidden">
         {/* Top accent strip */}
-        <div className="h-24 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 relative">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="h-24 bg-linear-to-br from-blue-600 via-indigo-600 to-purple-600 relative">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-size-[32px_32px]" />
         </div>
         <CardContent className="px-6 pb-6 relative">
           {/* Avatar */}
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10 mb-5">
-            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-xl ring-4 ring-white shrink-0 ${isDoctor ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
+            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-xl ring-4 ring-white shrink-0 ${isDoctor ? 'bg-linear-to-br from-emerald-500 to-green-600' : 'bg-linear-to-br from-blue-500 to-indigo-600'}`}>
               {initials}
             </div>
             <div className="pb-1 flex-1">

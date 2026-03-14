@@ -43,14 +43,17 @@ export const discussionsAPI = {
   create:       (data)   => api.post('/discussions', data),
   delete:       (id)     => api.delete(`/discussions/${id}`),
   like:         (id)     => api.post(`/discussions/${id}/like`),
+  dislike:      (id)     => api.post(`/discussions/${id}/dislike`),
   bookmark:     (id)     => api.post(`/discussions/${id}/bookmark`),
   getBookmarks: ()       => api.get('/discussions/bookmarks/me'),
 };
 
 // ── Replies ─────────────────────────────────────────
 export const repliesAPI = {
-  create: (discussionId, content) => api.post(`/replies/${discussionId}`, { content }),
-  delete: (replyId)               => api.delete(`/replies/${replyId}`),
+  create:  (discussionId, content, replyToId) => api.post(`/replies/${discussionId}`, { content, replyToId }),
+  like:    (replyId)  => api.post(`/replies/${replyId}/like`),
+  dislike: (replyId)  => api.post(`/replies/${replyId}/dislike`),
+  delete:  (replyId)  => api.delete(`/replies/${replyId}`),
 };
 
 // ── Messages (DMs) ──────────────────────────────────

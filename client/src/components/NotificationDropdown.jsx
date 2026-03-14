@@ -108,7 +108,7 @@ export default function NotificationDropdown({ onNavigateToDiscussion }) {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 border border-white shadow-sm animate-pulse">
+          <span className="absolute top-1 right-1 min-w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 border border-white shadow-sm animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -134,7 +134,7 @@ export default function NotificationDropdown({ onNavigateToDiscussion }) {
           </div>
 
           {/* List */}
-          <div className="max-h-[360px] overflow-y-auto">
+          <div className="max-h-90 overflow-y-auto">
             {loading ? (
               <div className="py-10 text-center">
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600/30 border-t-blue-600 mx-auto" />

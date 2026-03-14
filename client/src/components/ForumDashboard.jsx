@@ -12,8 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { DiscussionList } from './DiscussionList';
 import { DiscussionDetail } from './DiscussionDetail';
-import { UserProfile } from './UserProfile';
-import { SettingsPage } from './SettingsPage';
+import  UserProfile from './UserProfile';
+import  SettingsPage  from './SettingsPage';
 import { BookmarksPage } from './BookmarksPage';
 import { HelpPage } from './HelpPage';
 import { AboutPage } from './AboutPage';
@@ -125,10 +125,10 @@ export default function ForumDashboard() {
           {/* Logo + Desktop Nav */}
           <div className="flex items-center gap-6">
             <button onClick={() => setCurrentPage('discussions')} className="flex items-center gap-3 group shrink-0">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-all duration-200">
+              <div className="w-9 h-9 bg-linear-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-all duration-200">
                 <Activity className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent hidden sm:block">
+              <span className="text-xl font-bold tracking-tight bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent hidden sm:block">
                 Health Hive
               </span>
             </button>
@@ -160,7 +160,7 @@ export default function ForumDashboard() {
               className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
               <Mail className="w-5 h-5" />
             </button>
-            <button className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+            <div className="relative">
               <NotificationDropdown
                 onNavigateToDiscussion={async (discussionId) => {
                   try {
@@ -170,14 +170,14 @@ export default function ForumDashboard() {
                   } catch {}
                 }}
               />
-            </button>
+            </div>
             <div className="w-px h-6 bg-slate-200 mx-0.5" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full border border-transparent hover:border-slate-200 hover:bg-slate-50 hover:shadow-md transition-all duration-200">
                   <Avatar className="w-8 h-8 ring-2 ring-offset-1 ring-offset-white ring-blue-100">
-                    <AvatarFallback className={`text-white text-xs font-bold ${isDoctor ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
+                    <AvatarFallback className={`text-white text-xs font-bold ${isDoctor ? 'bg-linear-to-br from-emerald-500 to-green-600' : 'bg-linear-to-br from-blue-500 to-indigo-600'}`}>
                       {displayInitials}
                     </AvatarFallback>
                   </Avatar>
@@ -285,7 +285,7 @@ export default function ForumDashboard() {
             </aside>
           )}
 
-          <main className="min-w-0">
+          <main className="min-w-0 relative">
             {renderPage()}
           </main>
         </div>
@@ -298,7 +298,7 @@ export default function ForumDashboard() {
         <DialogContent className="max-w-2xl max-h-[80vh] p-0 gap-0 rounded-2xl overflow-hidden">
           <DialogHeader className="p-6 pb-4 border-b border-slate-100">
             <DialogTitle className="flex items-center gap-3 text-xl">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               Search Health Hive
@@ -353,7 +353,7 @@ export default function ForumDashboard() {
                     onClick={() => { setSelectedDiscussion(d); setCurrentPage('discussion-detail'); setIsSearchOpen(false); setGlobalSearchQuery(''); }}
                     className="w-full text-left p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-slate-50 hover:shadow-md transition-all group">
                     <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${d.author?.role === 'doctor' ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${d.author?.role === 'doctor' ? 'bg-linear-to-br from-emerald-500 to-green-600' : 'bg-linear-to-br from-blue-500 to-indigo-600'}`}>
                         {d.author?.role === 'doctor' ? <Stethoscope className="w-5 h-5 text-white" /> : <UserIcon className="w-5 h-5 text-white" />}
                       </div>
                       <div className="flex-1 min-w-0">

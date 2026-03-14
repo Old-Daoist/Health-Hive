@@ -196,18 +196,31 @@ const isLiked = userId
   ? (discussion.likedBy || []).some(id => id.toString() === userId)
   : false;
 
+const isDisliked = userId
+  ? (discussion.dislikedBy || []).some(id => id.toString() === userId)
+  : false;
+
 const mongoose = require("mongoose");
 
 const replies = await Reply.find({
   discussion: new mongoose.Types.ObjectId(req.params.id)
 })
 .populate("author", "firstName lastName role isDoctorVerified")
+.populate({ path: "replyTo", populate: { path: "author", select: "firstName lastName" } })
 .sort({ createdAt: 1 });
+
+// Attach isLiked / isDisliked per reply for the current user
+const repliesWithReactions = replies.map(r => {
+  const obj = r.toObject();
+  obj.isLiked    = userId ? (r.likedBy    || []).some(id => id.toString() === userId) : false;
+  obj.isDisliked = userId ? (r.dislikedBy || []).some(id => id.toString() === userId) : false;
+  return obj;
+});
 
 res.json({
   success: true,
-  discussion: { ...discussion.toObject(), isLiked, isBookmarked },
-  replies
+  discussion: { ...discussion.toObject(), isLiked, isDisliked, isBookmarked },
+  replies: repliesWithReactions
 });
 
 } catch (error) {
@@ -231,39 +244,36 @@ try {
 const discussion = await Discussion.findById(req.params.id);
 
 if (!discussion) {
-  return res.status(404).json({
-    message: "Discussion not found"
-  });
+  return res.status(404).json({ message: "Discussion not found" });
 }
 
-if (!discussion.likedBy) {
-  discussion.likedBy = [];
+// Prevent liking your own post
+if (discussion.author.toString() === req.user.id.toString()) {
+  return res.status(400).json({ message: "You cannot like your own post" });
 }
 
-const alreadyLiked = discussion.likedBy.some(
-  id => id.toString() === req.user.id
-);
+if (!discussion.likedBy)    discussion.likedBy    = [];
+if (!discussion.dislikedBy) discussion.dislikedBy = [];
+
+const uid = req.user.id.toString();
+const alreadyLiked    = discussion.likedBy.some(id => id.toString() === uid);
+const alreadyDisliked = discussion.dislikedBy.some(id => id.toString() === uid);
 
 if (alreadyLiked) {
-
-  discussion.likedBy = discussion.likedBy.filter(
-    id => id.toString() !== req.user.id
-  );
-
-  discussion.likes -= 1;
-
+  discussion.likedBy = discussion.likedBy.filter(id => id.toString() !== uid);
+  discussion.likes = Math.max(0, discussion.likes - 1);
 } else {
-
+  if (alreadyDisliked) {
+    discussion.dislikedBy = discussion.dislikedBy.filter(id => id.toString() !== uid);
+    discussion.dislikes = Math.max(0, (discussion.dislikes || 0) - 1);
+  }
   discussion.likedBy.push(req.user.id);
-
   discussion.likes += 1;
-
 }
 
 await discussion.save();
 
-// Notify discussion author when someone likes (not if liking own post, not on unlike)
-if (!alreadyLiked && discussion.author.toString() !== req.user.id.toString()) {
+if (!alreadyLiked) {
   createNotification({
     recipient: discussion.author,
     sender: req.user.id,
@@ -277,7 +287,9 @@ if (!alreadyLiked && discussion.author.toString() !== req.user.id.toString()) {
 res.json({
   success: true,
   likes: discussion.likes,
-  isLiked: !alreadyLiked
+  dislikes: discussion.dislikes || 0,
+  isLiked: !alreadyLiked,
+  isDisliked: false,
 });
 
 } catch (error) {
@@ -290,6 +302,53 @@ res.status(500).json({
 
 }
 
+});
+
+/* ===========================
+DISLIKE DISCUSSION
+=========================== */
+
+router.post("/:id/dislike", requireAuth, async (req, res) => {
+  try {
+    const discussion = await Discussion.findById(req.params.id);
+    if (!discussion) return res.status(404).json({ message: "Discussion not found" });
+
+    if (discussion.author.toString() === req.user.id.toString()) {
+      return res.status(400).json({ message: "You cannot dislike your own post" });
+    }
+
+    if (!discussion.dislikedBy) discussion.dislikedBy = [];
+    if (!discussion.likedBy)    discussion.likedBy    = [];
+
+    const uid = req.user.id.toString();
+    const alreadyDisliked = discussion.dislikedBy.some(id => id.toString() === uid);
+    const alreadyLiked    = discussion.likedBy.some(id => id.toString() === uid);
+
+    if (alreadyDisliked) {
+      discussion.dislikedBy = discussion.dislikedBy.filter(id => id.toString() !== uid);
+      discussion.dislikes = Math.max(0, (discussion.dislikes || 0) - 1);
+    } else {
+      // Remove like if exists
+      if (alreadyLiked) {
+        discussion.likedBy = discussion.likedBy.filter(id => id.toString() !== uid);
+        discussion.likes = Math.max(0, discussion.likes - 1);
+      }
+      discussion.dislikedBy.push(req.user.id);
+      discussion.dislikes = (discussion.dislikes || 0) + 1;
+    }
+
+    await discussion.save();
+    res.json({
+      success: true,
+      dislikes: discussion.dislikes,
+      likes: discussion.likes,
+      isDisliked: !alreadyDisliked,
+      isLiked: false,
+    });
+  } catch (error) {
+    console.error("Dislike discussion error:", error.message);
+    res.status(500).json({ message: "Failed to dislike discussion" });
+  }
 });
 
 /* ===========================
@@ -344,8 +403,10 @@ GET USER BOOKMARKS
 router.get("/bookmarks/me", requireAuth, async (req, res) => {
 
 try {
+const User = require("../models/User");
+const user = await User.findById(req.user.id).select("bookmarks");
 const discussions = await Discussion.find({
-  _id: { $in: req.user.bookmarks || [] }
+  _id: { $in: user?.bookmarks || [] }
 })
   .populate("author", "firstName lastName role isDoctorVerified")
   .sort({ createdAt: -1 });

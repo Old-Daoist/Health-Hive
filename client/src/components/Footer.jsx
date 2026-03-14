@@ -157,7 +157,6 @@ export function Footer({ onNavigate }) {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
           <p>© {currentYear} Health Hive. All rights reserved.</p>
 
-          <p>This is a demonstration platform. Not for actual medical use as of now.</p>
         </div>
       </div>
     </footer>
