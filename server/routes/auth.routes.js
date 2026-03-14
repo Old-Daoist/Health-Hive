@@ -224,3 +224,16 @@ router.post("/reset-password", async (req, res) => {
 });
 
 module.exports = router;
+/* ========================= UPLOAD AVATAR ========================= */
+const upload = require("../middleware/upload.middleware");
+
+router.post("/avatar", requireAuth, upload.single("avatar"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    const avatarUrl = `/uploads/${req.file.filename}`;
+    const user = await User.findByIdAndUpdate(req.user.id, { avatar: avatarUrl }, { new: true });
+    res.json({ avatar: avatarUrl, message: "Avatar updated" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to upload avatar" });
+  }
+});

@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema(
   country:        { type: String, default: "" },
   specialization: { type: String, default: "" },
 
+  avatar:  { type: String, default: "" },
   bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Discussion" }],
 },
 {

@@ -11,18 +11,24 @@ import { Separator } from './ui/separator';
 import {
   ArrowLeft, ThumbsUp, ThumbsDown, Bookmark, Stethoscope,
   Eye, Send, CheckCircle, Hash, MessageSquare, Share2,
-  Reply, X, CornerDownRight
+  Reply, X, CornerDownRight, Pencil, Trash2, MoreHorizontal, Flag
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ReportModal from './ReportModal';
 
 export function DiscussionDetail({ discussion: initial, onBack }) {
   const { user } = useAuth();
   const [discussion, setDiscussion]   = useState(initial);
   const [replies, setReplies]         = useState([]);
   const [replyContent, setReplyContent] = useState('');
-  const [replyingTo, setReplyingTo]   = useState(null); // { _id, authorName }
+  const [replyingTo, setReplyingTo]   = useState(null);
   const [submitting, setSubmitting]   = useState(false);
   const [loading, setLoading]         = useState(true);
+  const [editing, setEditing]         = useState(false);
+  const [editForm, setEditForm]       = useState({ title: '', content: '' });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showMenu, setShowMenu]       = useState(false);
+  const [reportTarget, setReportTarget] = useState(null); // { targetType, targetId }
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -85,6 +91,32 @@ export function DiscussionDetail({ discussion: initial, onBack }) {
   const handleShare = () => {
     const url = `${window.location.origin}/forum`;
     navigator.clipboard.writeText(url).then(() => toast.success('Link copied to clipboard!'));
+  };
+
+  const handleEditSave = async () => {
+    if (!editForm.title.trim() || !editForm.content.trim()) return toast.error('Title and content required');
+    try {
+      const { data } = await discussionsAPI.update(discussion._id, editForm);
+      setDiscussion(prev => ({ ...prev, ...data.discussion }));
+      setEditing(false);
+      toast.success('Discussion updated!');
+    } catch (err) { toast.error(err.response?.data?.message || 'Failed to update'); }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await discussionsAPI.delete(discussion._id);
+      toast.success('Discussion deleted');
+      onBack();
+    } catch (err) { toast.error(err.response?.data?.message || 'Failed to delete'); }
+  };
+
+  const handleReplyDelete = async (replyId) => {
+    try {
+      await repliesAPI.delete(replyId);
+      setReplies(prev => prev.filter(r => r._id !== replyId));
+      toast.success('Reply deleted');
+    } catch { toast.error('Failed to delete reply'); }
   };
 
   /* ── reply actions ── */
@@ -153,12 +185,44 @@ export function DiscussionDetail({ discussion: initial, onBack }) {
             )}
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 leading-tight">{discussion.title}</h1>
+          <div className="flex items-start justify-between gap-3">
+            {editing ? (
+              <input
+                value={editForm.title}
+                onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
+                className="flex-1 text-2xl font-bold text-slate-900 border-b-2 border-blue-400 bg-transparent outline-none pb-1"
+                maxLength={200}
+              />
+            ) : (
+              <h1 className="text-2xl font-bold text-slate-900 leading-tight flex-1">{discussion.title}</h1>
+            )}
+            {/* Author menu — only shown to post author */}
+            {discussion.author?._id?.toString() === user?.id?.toString() && !editing && (
+              <div className="relative">
+                <button onClick={() => setShowMenu(m => !m)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+                {showMenu && (
+                  <div className="absolute right-0 top-8 bg-white rounded-xl shadow-lg border border-slate-100 z-20 min-w-35 overflow-hidden">
+                    <button onClick={() => { setEditForm({ title: discussion.title, content: discussion.content }); setEditing(true); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                      <Pencil className="w-3.5 h-3.5" /> Edit post
+                    </button>
+                    <button onClick={() => { setShowDeleteConfirm(true); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                      <Trash2 className="w-3.5 h-3.5" /> Delete post
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Author */}
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10 ring-2 ring-white shadow-md">
-              <AvatarFallback className={`text-white text-sm font-semibold ${doctorPost ? 'bg-linear-to-br from-emerald-500 to-green-600' : 'bg-linear-to-br from-blue-500 to-indigo-600'}`}>
+              <AvatarFallback className={`text-white text-sm font-semibold ${doctorPost ? 'bg-linear-to-brrom-emerald-500 to-green-600' : 'bg-linear-to-br from-blue-500 to-indigo-600'}`}>
                 {getInitials(authorName)}
               </AvatarFallback>
             </Avatar>
@@ -175,7 +239,50 @@ export function DiscussionDetail({ discussion: initial, onBack }) {
             </div>
           </div>
 
-          <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-[15px]">{discussion.content}</p>
+          {editing ? (
+            <div className="space-y-3">
+              <textarea
+                value={editForm.content}
+                onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))}
+                rows={6}
+                maxLength={5000}
+                className="w-full text-slate-700 text-[15px] leading-relaxed border border-blue-300 rounded-xl p-3 resize-none outline-none focus:ring-2 focus:ring-blue-100"
+              />
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-400">{editForm.content.length}/5000</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setEditing(false)}
+                    className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+                    Cancel
+                  </button>
+                  <button onClick={handleEditSave}
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium">
+                    Save changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-[15px]">{discussion.content}</p>
+          )}
+
+          {/* Delete confirmation */}
+          {showDeleteConfirm && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-3">
+              <p className="text-sm font-semibold text-red-800">Delete this discussion?</p>
+              <p className="text-xs text-red-600">This will also delete all replies. This action cannot be undone.</p>
+              <div className="flex gap-2">
+                <button onClick={handleDelete}
+                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-all">
+                  Yes, delete
+                </button>
+                <button onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 text-sm bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-all">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Symptoms */}
           {discussion.symptoms?.length > 0 && (
@@ -201,7 +308,7 @@ export function DiscussionDetail({ discussion: initial, onBack }) {
           <Separator className="bg-slate-100" />
 
           {/* ── Post actions: like · dislike · bookmark · share · views ── */}
-          <div className="flex items-center gap-1 flex-wrap">
+          <div className="flex items-center gap-1 flex-wrap discussion-detail-actions">
             {/* Like — hidden on own post */}
             {discussion.author?._id?.toString() !== user?.id?.toString() && (
               <Button variant="ghost" size="sm" onClick={handleLike}
@@ -238,10 +345,19 @@ export function DiscussionDetail({ discussion: initial, onBack }) {
             </Button>
 
             {/* Share */}
-            <Button variant="ghost" size="sm" onClick={handleShare}
-              className="gap-1.5 rounded-xl hover:bg-slate-100 text-slate-500">
+            <button onClick={handleShare}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm text-slate-500 hover:bg-slate-100 transition-all">
               <Share2 className="w-4 h-4" /> Share
-            </Button>
+            </button>
+
+            {/* Report — only for non-authors */}
+            {discussion.author?._id?.toString() !== user?.id?.toString() && (
+              <button
+                onClick={() => setReportTarget({ targetType: 'discussion', targetId: discussion._id })}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all ml-auto">
+                <Flag className="w-4 h-4" /> Report
+              </button>
+            )}
 
             <span className="flex items-center gap-1.5 text-sm text-slate-400 ml-auto">
               <Eye className="w-4 h-4" /> {discussion.views || 0} views
@@ -318,7 +434,7 @@ export function DiscussionDetail({ discussion: initial, onBack }) {
                       </div>
                     </div>
 
-                    {/* Reply actions: like · dislike · reply */}
+                    {/* Reply actions: like · dislike · reply · delete */}
                     <div className="flex items-center gap-1 pl-11">
                       <button
                         onClick={() => reply.author?._id?.toString() !== user?.id?.toString() && handleReplyLike(reply._id)}
@@ -338,6 +454,19 @@ export function DiscussionDetail({ discussion: initial, onBack }) {
                         className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
                         <Reply className="w-3.5 h-3.5" /> Reply
                       </button>
+                      {reply.author?._id?.toString() === user?.id?.toString() && (
+                        <button onClick={() => handleReplyDelete(reply._id)}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all ml-auto">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {reply.author?._id?.toString() !== user?.id?.toString() && (
+                        <button
+                          onClick={() => setReportTarget({ targetType: 'reply', targetId: reply._id })}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all ml-auto">
+                          <Flag className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -396,6 +525,15 @@ export function DiscussionDetail({ discussion: initial, onBack }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Report Modal */}
+      {reportTarget && (
+        <ReportModal
+          targetType={reportTarget.targetType}
+          targetId={reportTarget.targetId}
+          onClose={() => setReportTarget(null)}
+        />
+      )}
     </div>
   );
 }

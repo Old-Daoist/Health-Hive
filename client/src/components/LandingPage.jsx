@@ -13,12 +13,12 @@ const stats = [
 ];
 
 const features = [
-  { icon: Stethoscope,   gradient: 'from-teal-400 to-cyan-500',    title: 'Verified Doctors',          desc: 'Every medical professional is credentialed and verified before they can answer.' },
-  { icon: MessageSquare, gradient: 'from-violet-400 to-purple-500', title: 'Live Community',            desc: 'Real-time discussions, replies, and reactions. Knowledge flows fast here.' },
-  { icon: Shield,        gradient: 'from-blue-400 to-indigo-500',   title: 'Private & Secure',          desc: 'End-to-end best practices. Your health data stays yours, always.' },
-  { icon: Brain,         gradient: 'from-rose-400 to-pink-500',     title: 'Mental Health Support',     desc: 'Specialist professionals in psychology and psychiatry are here for you.' },
-  { icon: Heart,         gradient: 'from-orange-400 to-amber-500',  title: 'Personalised Care',         desc: 'Track your journey, bookmark resources, and get tailored insights.' },
-  { icon: Zap,           gradient: 'from-emerald-400 to-green-500', title: 'Instant Answers',           desc: 'Post a question, get a response from the community within minutes.' },
+  { icon: Stethoscope,   linear: 'from-teal-400 to-cyan-500',    title: 'Verified Doctors',          desc: 'Every medical professional is credentialed and verified before they can answer.' },
+  { icon: MessageSquare, linear: 'from-violet-400 to-purple-500', title: 'Live Community',            desc: 'Real-time discussions, replies, and reactions. Knowledge flows fast here.' },
+  { icon: Shield,        linear: 'from-blue-400 to-indigo-500',   title: 'Private & Secure',          desc: 'End-to-end best practices. Your health data stays yours, always.' },
+  { icon: Brain,         linear: 'from-rose-400 to-pink-500',     title: 'Mental Health Support',     desc: 'Specialist professionals in psychology and psychiatry are here for you.' },
+  { icon: Heart,         linear: 'from-orange-400 to-amber-500',  title: 'Personalised Care',         desc: 'Track your journey, bookmark resources, and get tailored insights.' },
+  { icon: Zap,           linear: 'from-emerald-400 to-green-500', title: 'Instant Answers',           desc: 'Post a question, get a response from the community within minutes.' },
 ];
 
 const testimonials = [
@@ -53,7 +53,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-[#f0f4ff]/90 backdrop-blur-xl border-b border-white/60">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <div className="w-9 h-9 bg-linear-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
               <Activity className="w-5 h-5 text-white" />
             </div>
             <span className="hh-display text-xl font-bold text-slate-900 tracking-tight">Health Hive</span>
@@ -69,7 +69,7 @@ export default function LandingPage() {
               Sign in
             </Link>
             <Link to="/signup"
-              className="text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/25 transition-all hover:shadow-lg hover:shadow-blue-500/35 hover:scale-[1.02]">
+              className="text-sm font-semibold text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/25 transition-all hover:shadow-lg hover:shadow-blue-500/35 hover:scale-[1.02]">
               Get started free
             </Link>
           </div>
@@ -80,9 +80,9 @@ export default function LandingPage() {
       <section className="relative overflow-hidden pt-20 pb-28 px-6">
         {/* Background blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-80px] left-[-80px] w-[500px] h-[500px] bg-blue-300/30 rounded-full blur-[100px]" />
-          <div className="absolute top-[60px] right-[-100px] w-[400px] h-[400px] bg-indigo-300/25 rounded-full blur-[80px]" />
-          <div className="absolute bottom-[-60px] left-[35%] w-[360px] h-[360px] bg-violet-200/20 rounded-full blur-[80px]" />
+          <div className="absolute -top-20 -left-20 w-125 h-125 bg-blue-300/30 rounded-full blur-[100px]" />
+          <div className="absolute top-15 -right-25 w-100 h-100 bg-indigo-300/25 rounded-full blur-[80px]" />
+          <div className="absolute -bottom-15 left-[35%] w-90 h-90 bg-violet-200/20 rounded-full blur-[80px]" />
         </div>
 
         <div className="relative max-w-7xl mx-auto">
@@ -98,16 +98,16 @@ export default function LandingPage() {
               <h1 className="hh-display fade-up-2 text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.05] tracking-tight">
                 Your health.<br />
                 <span className="relative">
-                  <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-600 bg-clip-text text-transparent">
+                  <span className="bg-linear-to-r from-blue-600 via-indigo-500 to-violet-600 bg-clip-text text-transparent">
                     Real answers.
                   </span>
                   <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" preserveAspectRatio="none">
                     <path d="M0,8 Q75,0 150,8 Q225,16 300,8" stroke="url(#underline-grad)" strokeWidth="3" fill="none" strokeLinecap="round"/>
                     <defs>
-                      <linearGradient id="underline-grad" x1="0" y1="0" x2="1" y2="0">
+                      <linearlinear id="underline-grad" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#2563eb"/>
                         <stop offset="100%" stopColor="#7c3aed"/>
-                      </linearGradient>
+                      </linearlinear>
                     </defs>
                   </svg>
                 </span>
@@ -119,7 +119,7 @@ export default function LandingPage() {
 
               <div className="fade-up-4 flex flex-wrap gap-4">
                 <Link to="/signup"
-                  className="group inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-7 py-3.5 rounded-2xl shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all hover:scale-[1.02]">
+                  className="group inline-flex items-center gap-2 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-7 py-3.5 rounded-2xl shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all hover:scale-[1.02]">
                   Join for free
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -143,13 +143,13 @@ export default function LandingPage() {
             {/* Right floating UI mockup */}
             <div className="relative hidden lg:flex items-center justify-center">
               {/* Glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/15 to-indigo-400/15 rounded-3xl blur-2xl" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-400/15 to-indigo-400/15 rounded-3xl blur-2xl" />
 
               <div className="relative space-y-4 w-full max-w-sm">
                 {/* Doctor reply card */}
                 <div className="float-1 bg-white rounded-2xl p-4 shadow-xl shadow-slate-900/8 border border-white/80">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shrink-0">DR</div>
+                    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shrink-0">DR</div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm font-semibold text-slate-800">Dr. Rebecca Hart</span>
@@ -165,7 +165,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Stats mini card */}
-                <div className="float-2 ml-auto bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-4 shadow-xl shadow-blue-500/25 w-56">
+                <div className="float-2 ml-auto bg-linear-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-4 shadow-xl shadow-blue-500/25 w-56">
                   <p className="text-xs font-medium text-blue-200 mb-3">Today's activity</p>
                   <div className="space-y-2.5">
                     {[['New discussions','142'],['Replies posted','831'],['Doctors online','47']].map(([l,v]) => (
@@ -224,9 +224,9 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map(({ icon: Icon, gradient, title, desc }) => (
+            {features.map(({ icon: Icon, linear, title, desc }) => (
               <div key={title} className="card-hover bg-white/80 backdrop-blur-sm border border-white/80 rounded-2xl p-7 shadow-md shadow-slate-900/4 group">
-                <div className={`w-13 h-13 bg-gradient-to-br ${gradient} rounded-2xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform`}
+                <div className={`w-13 h-13 bg-linear-to-br ${linear} rounded-2xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform`}
                      style={{ width: 52, height: 52 }}>
                   <Icon className="w-6 h-6 text-white" />
                 </div>
@@ -247,7 +247,7 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-8 relative">
             {/* Connector line */}
-            <div className="hidden md:block absolute top-9 left-[calc(16.67%-10px)] right-[calc(16.67%-10px)] h-0.5 bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
+            <div className="hidden md:block absolute top-9 left-[calc(16.67%-10px)] right-[calc(16.67%-10px)] h-0.5 bg-linear-to-r from-transparent via-blue-200 to-transparent" />
             {[
               { step:'01', title:'Create your account',       desc:'Sign up free in under 30 seconds. No credit card, no friction.',          color:'bg-blue-600' },
               { step:'02', title:'Post your question',         desc:'Share your symptoms, concerns, or experiences with the community.',         color:'bg-indigo-600' },
@@ -283,7 +283,7 @@ export default function LandingPage() {
                 </div>
                 <p className="text-slate-700 text-sm leading-relaxed mb-5 italic">"{text}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
                     {name.split(' ').map(n=>n[0]).join('').slice(0,2)}
                   </div>
                   <div>
@@ -300,9 +300,9 @@ export default function LandingPage() {
       {/* ──────────────── CTA ──────────────── */}
       <section className="py-20 px-6">
         <div className="max-w-3xl mx-auto">
-          <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-700 rounded-3xl p-12 md:p-16 text-center shadow-2xl shadow-blue-900/25">
+          <div className="relative overflow-hidden bg-linear-to-br from-blue-600 via-indigo-700 to-violet-700 rounded-3xl p-12 md:p-16 text-center shadow-2xl shadow-blue-900/25">
             {/* Pattern */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:40px_40px]" />
+            <div className="absolute inset-0 bg-[linear-linear(rgba(255,255,255,0.06)_1px,transparent_1px),linear-linear(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-size-[40px_40px]" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full translate-x-20 -translate-y-20" />
             <div className="relative z-10">
               <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-6">

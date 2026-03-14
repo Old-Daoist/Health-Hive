@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { discussionsAPI } from '../services/api';
 import { socket } from '../services/socket';
@@ -16,6 +16,7 @@ import {
   Eye, Search, Hash, Flame, ArrowUpDown, X
 } from 'lucide-react';
 import { toast } from 'sonner';
+import DiscussionSkeleton from './DiscussionSkeleton';
 
 const commonSymptoms = [
   'Headache','Fever','Cough','Fatigue','Nausea','Dizziness','Anxiety','Insomnia',
@@ -23,15 +24,39 @@ const commonSymptoms = [
   'Stomach Pain','Diarrhea','Vomiting','Chills'
 ];
 
-export function DiscussionList({ discussions, setDiscussions, categories, onViewDiscussion, onReload }) {
+export function DiscussionList({ discussions, setDiscussions, categories, onViewDiscussion, onReload, pagination, onLoadMore, loadingMore }) {
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('newest');
-  const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery]   = useState('');
+  const [sortBy, setSortBy]             = useState('newest');
+  const [submitting, setSubmitting]     = useState(false);
+  const [searching, setSearching]       = useState(false);
+  const [initialLoading, setInitialLoading] = useState(discussions.length === 0);
   const [newDiscussion, setNewDiscussion] = useState({
     title: '', content: '', category: 'General Health', tags: '', symptoms: []
   });
+
+  // Mark initial load done once discussions arrive
+  useEffect(() => {
+    if (discussions.length > 0) setInitialLoading(false);
+    // Also clear after 3s to avoid stuck skeleton
+    const t = setTimeout(() => setInitialLoading(false), 3000);
+    return () => clearTimeout(t);
+  }, [discussions]);
+
+  // Debounced server search
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (!term) { onReload(); return; }
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await discussionsAPI.getAll({ search: term, limit: 20 });
+        setDiscussions(data.discussions || []);
+      } catch {} finally { setSearching(false); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     socket.on('newDiscussion', d => setDiscussions(prev => [d, ...prev]));
@@ -70,9 +95,13 @@ export function DiscussionList({ discussions, setDiscussions, categories, onView
   const handleLike = async (e, id) => {
     e.stopPropagation();
     if (!user) return toast.error('Login to like');
+    const discussion = discussions.find(d => d._id === id);
+    if (discussion?.author?._id?.toString() === user?.id?.toString()) return;
     try {
       const { data } = await discussionsAPI.like(id);
-      setDiscussions(prev => prev.map(d => d._id === id ? { ...d, likes: data.likes, isLiked: data.isLiked } : d));
+      setDiscussions(prev => prev.map(d => d._id === id
+        ? { ...d, likes: data.likes, dislikes: data.dislikes ?? d.dislikes, isLiked: data.isLiked, isDisliked: false }
+        : d));
     } catch { toast.error('Failed to like'); }
   };
 
@@ -80,15 +109,8 @@ export function DiscussionList({ discussions, setDiscussions, categories, onView
   const getAuthorRole = d => d.author?.role || d.authorRole || 'regular';
   const getInitials = name => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 
-  let filtered = discussions.filter(d => {
-    const q = searchQuery.toLowerCase();
-    if (q && !d.title?.toLowerCase().includes(q) && !d.content?.toLowerCase().includes(q) &&
-        !d.tags?.some(t => t.toLowerCase().includes(q)) &&
-        !d.symptoms?.some(s => s.toLowerCase().includes(q))) return false;
-    return true;
-  });
-
-  filtered = [...filtered].sort((a, b) => {
+  // Client-side sort only (search is server-side)
+  let filtered = [...discussions].sort((a, b) => {
     if (sortBy === 'likes') return (b.likes || 0) - (a.likes || 0);
     if (sortBy === 'views') return (b.views || 0) - (a.views || 0);
     return new Date(b.createdAt) - new Date(a.createdAt);
@@ -206,14 +228,18 @@ export function DiscussionList({ discussions, setDiscussions, categories, onView
       </div>
 
       {/* Results count */}
-      <p className="text-xs text-slate-400 px-1">
-        {filtered.length} {filtered.length === 1 ? 'discussion' : 'discussions'}
-        {searchQuery && ` for "${searchQuery}"`}
+      <p className="text-xs text-slate-400 px-1 flex items-center gap-2">
+        {searching
+          ? <><span className="w-3 h-3 border-2 border-blue-400/40 border-t-blue-500 rounded-full animate-spin inline-block" /> Searching…</>
+          : <>{filtered.length} {filtered.length === 1 ? 'discussion' : 'discussions'}{searchQuery && ` for "${searchQuery}"`}</>
+        }
       </p>
 
       {/* Discussion cards */}
       <div className="space-y-4">
-        {filtered.length === 0 ? (
+        {initialLoading ? (
+          <DiscussionSkeleton count={5} />
+        ) : filtered.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
             <MessageSquare className="w-16 h-16 text-slate-200 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-700 mb-1">No discussions found</h3>
@@ -229,7 +255,7 @@ export function DiscussionList({ discussions, setDiscussions, categories, onView
               className="group bg-white rounded-2xl p-6 shadow-md border border-slate-100 hover:shadow-xl hover:border-blue-200/70 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer relative overflow-hidden"
               onClick={() => onViewDiscussion(d)}>
 
-              {/* Hover gradient overlay */}
+              {/* Hover linear overlay */}
               <div className="absolute inset-0 bg-linear-to-br from-blue-50/0 to-indigo-50/0 group-hover:from-blue-50/30 group-hover:to-indigo-50/20 transition-all duration-300 pointer-events-none rounded-2xl" />
 
               {/* Doctor left accent bar */}
@@ -320,6 +346,21 @@ export function DiscussionList({ discussions, setDiscussions, categories, onView
           );
         })}
       </div>
+
+      {/* Load More */}
+      {pagination?.hasMore && (
+        <div className="flex justify-center pt-4 pb-2">
+          <button
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            className="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all text-sm font-medium shadow-sm disabled:opacity-50"
+          >
+            {loadingMore
+              ? <><span className="w-4 h-4 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin inline-block mr-1" />Loading…</>
+              : `Load more · ${(pagination.total || 0) - discussions.length} remaining`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

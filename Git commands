@@ -5,3 +5,12 @@ git push origin Health-Hive-ver-3
 git push -f origin Health-Hive-ver-3
 --------------------------------------------
 .\mongod.exe --dbpath C:\data\db
+---------------------------------------------
+MONGO_URI=mongodb://127.0.0.1:27017/health-hive
+JWT_SECRET=1633e96eda453080eecfd6dd200e981be24ff486ba8b191053666d05cacbabb7beca8994f4858e60d3dad762f56f2d93a27aa68587874d8fa6b397e8cfe5ac14
+JWT_EXPIRES_IN=7d
+EMAIL_USER=healthhive.huanwiko@gmail.com
+EMAIL_PASS=nntp mhta fulz qepv
+CLIENT_URL=http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:5173
+PORT=5000

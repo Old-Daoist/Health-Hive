@@ -13,7 +13,7 @@ CREATE DISCUSSION
 router.post("/", requireAuth, async (req, res) => {
 try {
 
-const { title, content, symptoms, category, age, gender, region } = req.body;
+const { title, content, symptoms, category, age, gender, region, tags } = req.body;
 
 if (!title || !content || !symptoms || !category) {
   return res.status(400).json({
@@ -21,11 +21,23 @@ if (!title || !content || !symptoms || !category) {
   });
 }
 
+if (title.trim().length < 5)
+  return res.status(400).json({ message: "Title must be at least 5 characters" });
+if (title.trim().length > 200)
+  return res.status(400).json({ message: "Title must be under 200 characters" });
+if (content.trim().length < 10)
+  return res.status(400).json({ message: "Content must be at least 10 characters" });
+if (content.trim().length > 5000)
+  return res.status(400).json({ message: "Content must be under 5000 characters" });
+if (!Array.isArray(symptoms) || symptoms.length === 0)
+  return res.status(400).json({ message: "At least one symptom is required" });
+
 const discussion = await Discussion.create({
-  title,
-  content,
+  title: title.trim(),
+  content: content.trim(),
   symptoms,
   category,
+  tags: Array.isArray(tags) ? tags.slice(0, 10) : [],
   age,
   gender,
   region,
@@ -86,7 +98,7 @@ if (userId) {
   if (u) userBookmarks = u.bookmarks.map(id => id.toString());
 }
 
-const { sort, category, symptom, search } = req.query;
+const { sort, category, symptom, search, page = 1, limit = 20 } = req.query;
 
 let filter = {};
 
@@ -101,7 +113,8 @@ if (symptom) {
 if (search) {
   filter.$or = [
     { title: { $regex: search, $options: "i" } },
-    { content: { $regex: search, $options: "i" } }
+    { content: { $regex: search, $options: "i" } },
+    { tags: { $regex: search, $options: "i" } }
   ];
 }
 
@@ -110,9 +123,17 @@ let sortOption = { createdAt: -1 };
 if (sort === "popular") sortOption = { views: -1 };
 if (sort === "liked") sortOption = { likes: -1 };
 
+const pageNum = Math.max(1, parseInt(page));
+const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
+const skip = (pageNum - 1) * limitNum;
+
+const total = await Discussion.countDocuments(filter);
+
 const discussions = await Discussion.find(filter)
   .populate("author", "firstName lastName role isDoctorVerified")
-  .sort(sortOption);
+  .sort(sortOption)
+  .skip(skip)
+  .limit(limitNum);
 
 const discussionsWithReplies = await Promise.all(
   discussions.map(async (d) => {
@@ -125,6 +146,9 @@ const discussionsWithReplies = await Promise.all(
     const isLiked = userId
       ? (obj.likedBy || []).some(id => id.toString() === userId)
       : false;
+    const isDisliked = userId
+      ? (obj.dislikedBy || []).some(id => id.toString() === userId)
+      : false;
     const isBookmarked = userId
       ? userBookmarks.includes(obj._id.toString())
       : false;
@@ -133,6 +157,7 @@ const discussionsWithReplies = await Promise.all(
       ...obj,
       replyCount,
       isLiked,
+      isDisliked,
       isBookmarked,
     };
 
@@ -141,7 +166,14 @@ const discussionsWithReplies = await Promise.all(
 
 res.json({
   success: true,
-  discussions: discussionsWithReplies
+  discussions: discussionsWithReplies,
+  pagination: {
+    page: pageNum,
+    limit: limitNum,
+    total,
+    totalPages: Math.ceil(total / limitNum),
+    hasMore: pageNum * limitNum < total,
+  }
 });
 
 } catch (error) {
@@ -428,3 +460,74 @@ res.status(500).json({
 });
 
 module.exports = router;
+/* ===========================
+EDIT DISCUSSION
+=========================== */
+router.put("/:id", requireAuth, async (req, res) => {
+  try {
+    const discussion = await Discussion.findById(req.params.id);
+    if (!discussion) return res.status(404).json({ message: "Discussion not found" });
+    if (discussion.author.toString() !== req.user.id.toString())
+      return res.status(403).json({ message: "Not authorized" });
+
+    const { title, content, category, symptoms, tags } = req.body;
+    if (title && title.trim().length < 5)
+      return res.status(400).json({ message: "Title must be at least 5 characters" });
+    if (content && content.trim().length > 5000)
+      return res.status(400).json({ message: "Content must be under 5000 characters" });
+
+    discussion.title    = title?.trim()    || discussion.title;
+    discussion.content  = content?.trim()  || discussion.content;
+    discussion.category = category         || discussion.category;
+    discussion.symptoms = symptoms         || discussion.symptoms;
+    discussion.tags     = Array.isArray(tags) ? tags.slice(0, 10) : discussion.tags;
+    await discussion.save();
+
+    const updated = await Discussion.findById(discussion._id)
+      .populate("author", "firstName lastName role isDoctorVerified");
+    res.json({ success: true, discussion: updated });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update discussion" });
+  }
+});
+
+/* ===========================
+DELETE DISCUSSION
+=========================== */
+router.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    const discussion = await Discussion.findById(req.params.id);
+    if (!discussion) return res.status(404).json({ message: "Discussion not found" });
+    if (discussion.author.toString() !== req.user.id.toString() && req.user.role !== "admin")
+      return res.status(403).json({ message: "Not authorized" });
+
+    await Reply.deleteMany({ discussion: req.params.id });
+    await discussion.deleteOne();
+
+    if (global.io) global.io.emit("discussionDeleted", { id: req.params.id });
+    res.json({ message: "Discussion deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete discussion" });
+  }
+});
+
+/* ===========================
+SEARCH USERS
+=========================== */
+router.get("/search/users", requireAuth, async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const { q } = req.query;
+    if (!q || q.length < 2) return res.json({ users: [] });
+    const users = await User.find({
+      $or: [
+        { firstName: { $regex: q, $options: "i" } },
+        { lastName:  { $regex: q, $options: "i" } },
+        { email:     { $regex: q, $options: "i" } },
+      ]
+    }).select("firstName lastName email role isDoctorVerified avatar").limit(10);
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ message: "Search failed" });
+  }
+});

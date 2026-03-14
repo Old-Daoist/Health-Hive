@@ -4333,3 +4333,43 @@ html {
     height: 0;
   }
 }
+
+/* ── Mobile responsiveness fixes ── */
+@media (max-width: 640px) {
+  /* Prevent horizontal overflow */
+  body { overflow-x: hidden; }
+
+  /* Discussion cards — stack stats on mobile */
+  .discussion-stats { flex-wrap: wrap; gap: 0.5rem; }
+
+  /* Navbar — tighter on mobile */
+  .navbar-title { font-size: 1.1rem; }
+
+  /* DiscussionDetail — full width content */
+  .discussion-detail-actions { flex-wrap: wrap; gap: 0.25rem; }
+
+  /* Settings — stack sidebar + content */
+  .settings-layout { flex-direction: column; }
+
+  /* Bookmarks panel — full viewport height */
+  .bookmarks-panel { height: calc(100vh - 72px); }
+
+  /* Admin panel cards — single column */
+  .admin-stats { grid-template-columns: 1fr 1fr; }
+
+  /* Reply box — smaller padding */
+  .reply-box { padding: 1rem; }
+
+  /* Modals — full width on mobile */
+  .report-modal { margin: 0.5rem; max-width: calc(100vw - 1rem); }
+}
+
+/* Smooth transitions across the app */
+* { -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
+
+/* Better scrollbars */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

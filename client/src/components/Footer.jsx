@@ -136,15 +136,15 @@ export function Footer({ onNavigate }) {
 
               <li className="flex items-start gap-2 text-slate-600">
                 <Phone className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 6909862170</span>
               </li>
 
               <li className="flex items-start gap-2 text-slate-600">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>
-                  123 Healthcare Ave
+                  Pune University
                   <br />
-                  Medical District, CA 90210
+                  Pune, Maharashtra, India
                 </span>
               </li>
             </ul>

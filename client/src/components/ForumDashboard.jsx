@@ -12,17 +12,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { DiscussionList } from './DiscussionList';
 import { DiscussionDetail } from './DiscussionDetail';
-import  UserProfile from './UserProfile';
-import  SettingsPage  from './SettingsPage';
+import  UserProfile  from './UserProfile';
+import SettingsPage from './SettingsPage';
 import { BookmarksPage } from './BookmarksPage';
 import { HelpPage } from './HelpPage';
 import { AboutPage } from './AboutPage';
 import { Footer } from './Footer';
 import DirectMessaging from './DirectMessaging';
+import AdminPanel from './AdminPanel';
 import {
   LogOut, MessageSquare, User as UserIcon, Settings,
   Bookmark, HelpCircle, Info, Menu, Hash, Activity,
-  MessageCircle, Search, TrendingUp, Sparkles, X, Mail, Stethoscope
+  MessageCircle, Search, TrendingUp, Sparkles, X, Mail, Stethoscope, Shield
 } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
 
@@ -38,6 +39,8 @@ export default function ForumDashboard() {
   const [selectedDiscussion, setSelectedDiscussion] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [discussions, setDiscussions] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, hasMore: false, total: 0 });
+  const [loadingMore, setLoadingMore] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -52,16 +55,28 @@ export default function ForumDashboard() {
     return () => socket.off('connect', rejoin);
   }, [userId]);
 
-  useEffect(() => { loadDiscussions(); }, [selectedCategory]);
+  useEffect(() => { loadDiscussions(1); }, [selectedCategory]);
 
-  const loadDiscussions = async () => {
+  const loadDiscussions = async (page = 1) => {
     try {
-      const params = selectedCategory !== 'all' ? { category: selectedCategory } : {};
+      const params = { page, limit: 20 };
+      if (selectedCategory !== 'all') params.category = selectedCategory;
       const { data } = await discussionsAPI.getAll(params);
-      setDiscussions(data.discussions || []);
+      if (page === 1) {
+        setDiscussions(data.discussions || []);
+      } else {
+        setDiscussions(prev => [...prev, ...(data.discussions || [])]);
+      }
+      setPagination(data.pagination || { page, hasMore: false, total: 0 });
     } catch (err) {
       console.error('Failed to load discussions', err);
     }
+  };
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    await loadDiscussions(pagination.page + 1);
+    setLoadingMore(false);
   };
 
   const handleLogout = () => { logout(); navigate('/'); };
@@ -95,7 +110,10 @@ export default function ForumDashboard() {
             setDiscussions={setDiscussions}
             categories={categories}
             onViewDiscussion={d => { setSelectedDiscussion(d); setCurrentPage('discussion-detail'); }}
-            onReload={loadDiscussions}
+            onReload={() => loadDiscussions(1)}
+            pagination={pagination}
+            onLoadMore={loadMore}
+            loadingMore={loadingMore}
           />
         );
       case 'discussion-detail':
@@ -111,6 +129,7 @@ export default function ForumDashboard() {
       case 'settings':  return <SettingsPage />;
       case 'help':      return <HelpPage />;
       case 'about':     return <AboutPage />;
+      case 'admin':     return <AdminPanel />;
       default:          return null;
     }
   };
@@ -193,6 +212,14 @@ export default function ForumDashboard() {
                 <DropdownMenuItem onClick={() => setCurrentPage('bookmarks')} className="rounded-lg"><Bookmark className="w-4 h-4 mr-2" /> Bookmarks</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setCurrentPage('help')} className="rounded-lg"><HelpCircle className="w-4 h-4 mr-2" /> Help</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setCurrentPage('about')} className="rounded-lg"><Info className="w-4 h-4 mr-2" /> About</DropdownMenuItem>
+                {(user?.role === 'admin') && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setCurrentPage('admin')} className="rounded-lg text-red-600 focus:text-red-700 focus:bg-red-50">
+                      <Shield className="w-4 h-4 mr-2" /> Admin Panel
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600 rounded-lg focus:text-red-700 focus:bg-red-50">
                   <LogOut className="w-4 h-4 mr-2" /> Logout

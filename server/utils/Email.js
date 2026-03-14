@@ -21,7 +21,7 @@ const sendVerificationEmail = async (toEmail, firstName, token) => {
       <div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f8fafc;">
         <div style="background:#fff;border-radius:16px;padding:40px;box-shadow:0 4px 24px rgba(0,0,0,.06);">
           <div style="text-align:center;margin-bottom:32px;">
-            <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:linear-gradient(135deg,#2563eb,#4f46e5);border-radius:14px;margin-bottom:16px;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:linear-linear(135deg,#2563eb,#4f46e5);border-radius:14px;margin-bottom:16px;">
               <span style="font-size:28px;">🏥</span>
             </div>
             <h1 style="font-size:22px;font-weight:700;color:#0f172a;margin:0;">Welcome to Health Hive</h1>
@@ -31,7 +31,7 @@ const sendVerificationEmail = async (toEmail, firstName, token) => {
             Thanks for signing up. Please verify your email address to activate your account and start connecting with doctors and the health community.
           </p>
           <div style="text-align:center;margin:32px 0;">
-            <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;text-decoration:none;padding:14px 36px;border-radius:12px;font-size:15px;font-weight:600;letter-spacing:.01em;">
+            <a href="${url}" style="display:inline-block;background:linear-linear(135deg,#2563eb,#4f46e5);color:#fff;text-decoration:none;padding:14px 36px;border-radius:12px;font-size:15px;font-weight:600;letter-spacing:.01em;">
               Verify Email Address
             </a>
           </div>
@@ -59,7 +59,7 @@ const sendPasswordResetEmail = async (toEmail, firstName, token) => {
       <div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f8fafc;">
         <div style="background:#fff;border-radius:16px;padding:40px;box-shadow:0 4px 24px rgba(0,0,0,.06);">
           <div style="text-align:center;margin-bottom:32px;">
-            <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:linear-gradient(135deg,#f59e0b,#ef4444);border-radius:14px;margin-bottom:16px;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:linear-linear(135deg,#f59e0b,#ef4444);border-radius:14px;margin-bottom:16px;">
               <span style="font-size:28px;">🔐</span>
             </div>
             <h1 style="font-size:22px;font-weight:700;color:#0f172a;margin:0;">Password Reset</h1>
@@ -69,7 +69,7 @@ const sendPasswordResetEmail = async (toEmail, firstName, token) => {
             Click the button below to reset your password. This link will expire in <strong>1 hour</strong>.
           </p>
           <div style="text-align:center;margin:32px 0;">
-            <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;text-decoration:none;padding:14px 36px;border-radius:12px;font-size:15px;font-weight:600;">
+            <a href="${url}" style="display:inline-block;background:linear-linear(135deg,#f59e0b,#ef4444);color:#fff;text-decoration:none;padding:14px 36px;border-radius:12px;font-size:15px;font-weight:600;">
               Reset Password
             </a>
           </div>
