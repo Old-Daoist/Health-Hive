@@ -80,9 +80,15 @@ export const notificationsAPI = {
 
 // ── Admin ────────────────────────────────────────────
 export const adminAPI = {
+  // Stats
+  getStats:                ()           => api.get('/admin/stats'),
   getPendingVerifications: () => api.get('/admin/verifications'),
   approveDoctor: (id)  => api.post(`/admin/verify/${id}/approve`),
   rejectDoctor:  (id)  => api.post(`/admin/verify/${id}/reject`),
+  // User management
+  getUsers:       (params)   => api.get('/admin/users', { params }),
+  updateUserRole: (id, role) => api.put(`/admin/users/${id}/role`, { role }),
+  deleteUser:     (id)       => api.delete(`/admin/users/${id}`),
 };
 
 // ── Doctor ───────────────────────────────────────────

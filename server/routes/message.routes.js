@@ -1,15 +1,14 @@
 const express = require("express");
 const Message = require("../models/Message");
-const User = require("../models/User");
+const User    = require("../models/User");
 const { requireAuth } = require("../middleware/auth.middleware");
+const { createNotification } = require("./notification.routes");
 
 const router = express.Router();
 
 /* ===========================
-   GET ALL CONVERSATIONS (inbox)
-   Returns one message per conversation with latest message preview
+   GET ALL CONVERSATIONS
 =========================== */
-
 router.get("/conversations", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id.toString();
@@ -18,29 +17,26 @@ router.get("/conversations", requireAuth, async (req, res) => {
       $or: [{ sender: userId }, { receiver: userId }],
     })
       .sort({ createdAt: -1 })
-      .populate("sender", "firstName lastName role isDoctorVerified")
+      .populate("sender",   "firstName lastName role isDoctorVerified")
       .populate("receiver", "firstName lastName role isDoctorVerified");
 
     const seen = new Set();
     const conversations = [];
+
     for (const msg of messages) {
       if (!seen.has(msg.conversationId)) {
         seen.add(msg.conversationId);
 
-        const senderIdStr = msg.sender?._id?.toString();
+        const senderIdStr   = msg.sender?._id?.toString();
         const receiverIdStr = msg.receiver?._id?.toString();
-
-        // Skip if either party is missing (deleted user)
         if (!senderIdStr || !receiverIdStr) continue;
 
         const other = senderIdStr === userId ? msg.receiver : msg.sender;
-
-        // Skip self-conversations (leftover from earlier bugs)
         if (other._id.toString() === userId) continue;
 
         const unread = await Message.countDocuments({
           conversationId: msg.conversationId,
-          sender: other._id,
+          sender:   other._id,
           receiver: userId,
           read: false,
         });
@@ -49,9 +45,9 @@ router.get("/conversations", requireAuth, async (req, res) => {
           conversationId: msg.conversationId,
           other,
           lastMessage: {
-            content: msg.content,
+            content:   msg.content,
             createdAt: msg.createdAt,
-            fromMe: senderIdStr === userId,
+            fromMe:    senderIdStr === userId,
           },
           unread,
         });
@@ -66,18 +62,16 @@ router.get("/conversations", requireAuth, async (req, res) => {
 });
 
 /* ===========================
-   GET ALL USERS (to start a new conversation)
+   GET USERS (new conversation)
 =========================== */
-
 router.get("/users", requireAuth, async (req, res) => {
   try {
     const { q } = req.query;
-    // Exclude yourself from search results
     const filter = { _id: { $ne: req.user.id.toString() } };
     if (q) {
       filter.$or = [
         { firstName: { $regex: q, $options: "i" } },
-        { lastName: { $regex: q, $options: "i" } },
+        { lastName:  { $regex: q, $options: "i" } },
       ];
     }
     const users = await User.find(filter)
@@ -91,9 +85,8 @@ router.get("/users", requireAuth, async (req, res) => {
 });
 
 /* ===========================
-   GET MESSAGES IN A CONVERSATION
+   GET MESSAGES IN CONVERSATION
 =========================== */
-
 router.get("/:otherUserId", requireAuth, async (req, res) => {
   try {
     const conversationId = Message.buildConversationId(
@@ -107,11 +100,7 @@ router.get("/:otherUserId", requireAuth, async (req, res) => {
 
     // Mark incoming messages as read
     await Message.updateMany(
-      {
-        conversationId,
-        receiver: req.user.id,
-        read: false,
-      },
+      { conversationId, receiver: req.user.id, read: false },
       { read: true }
     );
 
@@ -125,26 +114,21 @@ router.get("/:otherUserId", requireAuth, async (req, res) => {
 /* ===========================
    SEND A MESSAGE
 =========================== */
-
 router.post("/:otherUserId", requireAuth, async (req, res) => {
   try {
     const { content } = req.body;
-    const senderId = req.user.id.toString();
+    const senderId   = req.user.id.toString();
     const receiverId = req.params.otherUserId;
 
-    if (!content || !content.trim()) {
+    if (!content || !content.trim())
       return res.status(400).json({ message: "Message content is required" });
-    }
 
-    // Prevent messaging yourself
-    if (senderId === receiverId) {
+    if (senderId === receiverId)
       return res.status(400).json({ message: "You cannot message yourself" });
-    }
 
     const receiver = await User.findById(receiverId);
-    if (!receiver) {
+    if (!receiver)
       return res.status(404).json({ message: "User not found" });
-    }
 
     const conversationId = Message.buildConversationId(senderId, receiverId);
 
@@ -156,15 +140,24 @@ router.post("/:otherUserId", requireAuth, async (req, res) => {
     });
 
     const populated = await Message.findById(message._id)
-      .populate("sender", "firstName lastName role isDoctorVerified")
+      .populate("sender",   "firstName lastName role isDoctorVerified")
       .populate("receiver", "firstName lastName role isDoctorVerified");
 
-    // Emit to both users — use explicit strings for room lookup
+    // Real-time: emit to both users
     const io = global.io;
     if (io) {
       io.to(senderId).emit("newMessage", populated);
       io.to(receiverId).emit("newMessage", populated);
     }
+
+    // Notification to receiver
+    const senderName = `${req.user.name || `${populated.sender.firstName} ${populated.sender.lastName}`}`;
+    createNotification({
+      recipient: receiverId,
+      sender:    senderId,
+      type:      "message",
+      message:   `${senderName} sent you a message`,
+    }).catch(console.error);
 
     res.status(201).json({ success: true, message: populated });
   } catch (err) {
